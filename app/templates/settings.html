@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>SpaceNotifier</title>
+<style>
+  :root { color-scheme: light dark; }
+  body { font-family: system-ui, sans-serif; max-width: 640px; margin: 2rem auto; padding: 0 1rem; }
+  h1 { font-size: 1.4rem; margin-bottom: 0.25rem; }
+  .sub { color: #888; margin-bottom: 1.5rem; }
+  label { display: block; margin-top: 1rem; font-weight: 600; }
+  input[type=text], input[type=number] { width: 100%; padding: 0.5rem; font-size: 1rem; box-sizing: border-box; }
+  .row { display: flex; gap: 1rem; }
+  .row > div { flex: 1; }
+  .hint { color: #888; font-size: 0.85rem; margin-top: 0.25rem; word-break: break-all; }
+  .actions { margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  button { padding: 0.6rem 1rem; font-size: 1rem; cursor: pointer; }
+  .flash { padding: 0.6rem 0.8rem; border-radius: 4px; margin-bottom: 1rem; }
+  .flash.ok { background: #e6f4ea; color: #137333; }
+  .flash.err { background: #fce8e6; color: #c5221f; }
+  table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
+  th, td { text-align: left; padding: 0.4rem 0.5rem; border-bottom: 1px solid #ddd; }
+  .pill { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 10px; font-size: 0.75rem; }
+  .pill.sent { background: #137333; color: white; }
+  .pill.pending { background: #888; color: white; }
+</style>
+</head>
+<body>
+<h1>SpaceNotifier</h1>
+<div class="sub">15-minute heads-up before SpaceX launches from Vandenberg.</div>
+
+{% if flash %}
+  <div class="flash {{ flash_kind }}">{{ flash }}</div>
+{% endif %}
+
+<form method="post" action="/settings">
+  <label for="ntfy_topic">ntfy topic</label>
+  <input type="text" id="ntfy_topic" name="ntfy_topic" value="{{ ntfy_topic }}" placeholder="some-unguessable-string-123" required>
+  {% if ntfy_topic %}
+    <div class="hint">
+      Subscribe URL: <code>https://ntfy.sh/{{ ntfy_topic }}</code><br>
+      Open in app: <a href="ntfy://ntfy.sh/{{ ntfy_topic }}">ntfy://ntfy.sh/{{ ntfy_topic }}</a>
+    </div>
+  {% else %}
+    <div class="hint">Pick a long random string — anyone who knows it can send you notifications.</div>
+  {% endif %}
+
+  <div class="row">
+    <div>
+      <label for="lead_minutes">Lead time (min)</label>
+      <input type="number" id="lead_minutes" name="lead_minutes" value="{{ lead_minutes }}" min="1" max="240">
+    </div>
+    <div>
+      <label for="poll_minutes">Poll interval (min)</label>
+      <input type="number" id="poll_minutes" name="poll_minutes" value="{{ poll_minutes }}" min="1" max="120">
+    </div>
+  </div>
+
+  <label>
+    <input type="checkbox" name="enabled" value="1" {% if enabled %}checked{% endif %}>
+    Notifications enabled
+  </label>
+
+  <div class="actions">
+    <button type="submit">Save</button>
+    <button type="submit" formaction="/test" formmethod="post">Send test notification</button>
+    <button type="submit" formaction="/admin/poll" formmethod="post">Poll now</button>
+  </div>
+</form>
+
+<h2 style="margin-top:2rem; font-size:1.1rem;">Upcoming Vandenberg launches</h2>
+{% if launches %}
+<table>
+  <thead><tr><th>Mission</th><th>T-0 (UTC)</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for l in launches %}
+    <tr>
+      <td>{{ l.name }}</td>
+      <td>{{ l.net_utc }}</td>
+      <td>{{ l.status or "—" }}</td>
+      <td>
+        {% if l.notified %}<span class="pill sent">notified</span>
+        {% else %}<span class="pill pending">pending</span>{% endif %}
+      </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% else %}
+  <p style="color:#888;">No launches known yet. Hit "Poll now" to fetch.</p>
+{% endif %}
+
+</body>
+</html>
