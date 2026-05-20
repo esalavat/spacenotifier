@@ -77,5 +77,6 @@ requirements.txt
 - `POST /settings`      — save settings
 - `POST /test`          — send a test push to the current topic
 - `POST /admin/poll`    — force an immediate poll of LL2
+- `POST /admin/cleanup` — delete launches whose T-0 has already passed
 - `GET  /admin/jobs`    — JSON list of scheduled jobs (debugging)
 - `GET  /healthz`       — liveness check

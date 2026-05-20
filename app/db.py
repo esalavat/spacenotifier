@@ -1,7 +1,7 @@
 import os
 import sqlite3
 from contextlib import contextmanager
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 DB_PATH = os.environ.get("SPACENOTIFIER_DB", "/data/spacenotifier.db")
 
@@ -106,9 +106,9 @@ def list_upcoming_launches(limit: int = 5) -> list[sqlite3.Row]:
         )
 
 
-def prune_past_launches(days: int = 7) -> int:
-    """Delete launches whose T-0 is more than `days` in the past. Returns rows deleted."""
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+def delete_past_launches() -> int:
+    """Delete launches whose T-0 is already in the past. Returns rows deleted."""
+    now = datetime.now(timezone.utc).isoformat()
     with connect() as conn:
-        cur = conn.execute("DELETE FROM launches WHERE net_utc < ?", (cutoff,))
+        cur = conn.execute("DELETE FROM launches WHERE net_utc < ?", (now,))
         return cur.rowcount

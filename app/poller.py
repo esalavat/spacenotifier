@@ -67,10 +67,6 @@ def poll_and_schedule(scheduler: BaseScheduler) -> int:
         db.upsert_launch(launch_id, name, net, status)
         if _schedule_one(scheduler, launch_id, name, net):
             scheduled += 1
-
-    pruned = db.prune_past_launches(days=7)
-    if pruned:
-        log.info("pruned %d past launch row(s)", pruned)
     return scheduled
 
 

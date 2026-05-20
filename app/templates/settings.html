@@ -65,6 +65,11 @@
     <button type="submit">Save</button>
     <button type="submit" formaction="/test" formmethod="post">Send test notification</button>
     <button type="submit" formaction="/admin/poll" formmethod="post">Poll now</button>
+    <button type="submit" formaction="/admin/cleanup" formmethod="post"
+            formnovalidate
+            onclick="return confirm('Delete all launches whose T-0 has passed?');">
+      Clean up past launches
+    </button>
   </div>
 </form>
 

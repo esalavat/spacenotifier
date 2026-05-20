@@ -114,6 +114,16 @@ def admin_poll(request: Request):
         return _render(request, flash=f"Poll failed: {exc}", flash_kind="err")
 
 
+@app.post("/admin/cleanup")
+def admin_cleanup(request: Request):
+    try:
+        n = db.delete_past_launches()
+        return _render(request, flash=f"Removed {n} past launch row(s).", flash_kind="ok")
+    except Exception as exc:
+        log.exception("cleanup failed")
+        return _render(request, flash=f"Cleanup failed: {exc}", flash_kind="err")
+
+
 @app.get("/admin/jobs")
 def admin_jobs():
     return {
