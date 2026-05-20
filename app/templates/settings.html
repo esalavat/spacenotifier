@@ -71,12 +71,12 @@
 <h2 style="margin-top:2rem; font-size:1.1rem;">Upcoming Vandenberg launches</h2>
 {% if launches %}
 <table>
-  <thead><tr><th>Mission</th><th>T-0 (UTC)</th><th>Status</th><th></th></tr></thead>
+  <thead><tr><th>Mission</th><th>T-0</th><th>Status</th><th></th></tr></thead>
   <tbody>
   {% for l in launches %}
     <tr>
       <td>{{ l.name }}</td>
-      <td>{{ l.net_utc }}</td>
+      <td><time class="local-time" datetime="{{ l.net_utc }}">{{ l.net_utc }}</time></td>
       <td>{{ l.status or "—" }}</td>
       <td>
         {% if l.notified %}<span class="pill sent">notified</span>
@@ -87,8 +87,19 @@
   </tbody>
 </table>
 {% else %}
-  <p style="color:#888;">No launches known yet. Hit "Poll now" to fetch.</p>
+  <p style="color:#888;">No upcoming launches known yet. Hit "Poll now" to fetch.</p>
 {% endif %}
+
+<script>
+  const fmt = new Intl.DateTimeFormat(undefined, {
+    weekday: "short", month: "short", day: "numeric",
+    hour: "numeric", minute: "2-digit", timeZoneName: "short",
+  });
+  for (const el of document.querySelectorAll("time.local-time")) {
+    const d = new Date(el.dateTime);
+    if (!isNaN(d)) el.textContent = fmt.format(d);
+  }
+</script>
 
 </body>
 </html>

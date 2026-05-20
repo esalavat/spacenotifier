@@ -64,7 +64,7 @@ def _render(request: Request, flash: str | None = None, flash_kind: str = "ok"):
             "lead_minutes": config.lead_minutes(),
             "poll_minutes": config.poll_minutes(),
             "enabled": config.enabled(),
-            "launches": db.list_recent_launches(5),
+            "launches": db.list_upcoming_launches(5),
             "flash": flash,
             "flash_kind": flash_kind,
         },
