@@ -1,0 +1,13 @@
+services:
+  spacenotifier:
+    build: .
+    image: spacenotifier:latest
+    container_name: spacenotifier
+    restart: unless-stopped
+    ports:
+      - "80:8000"
+    volumes:
+      - ./data:/data
+    environment:
+      TZ: America/Los_Angeles
+      LOG_LEVEL: INFO
