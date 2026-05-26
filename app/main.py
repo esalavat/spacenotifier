@@ -1,6 +1,7 @@
 import logging
 import os
 from contextlib import asynccontextmanager
+from datetime import datetime, timezone
 from pathlib import Path
 
 from apscheduler.schedulers.background import BackgroundScheduler
@@ -64,7 +65,8 @@ def _render(request: Request, flash: str | None = None, flash_kind: str = "ok"):
             "lead_minutes": config.lead_minutes(),
             "poll_minutes": config.poll_minutes(),
             "enabled": config.enabled(),
-            "launches": db.list_upcoming_launches(5),
+            "launches": db.list_launches(),
+            "now_utc": datetime.now(timezone.utc).isoformat(),
             "flash": flash,
             "flash_kind": flash_kind,
         },

@@ -23,6 +23,7 @@
   .pill { display: inline-block; padding: 0.1rem 0.5rem; border-radius: 10px; font-size: 0.75rem; }
   .pill.sent { background: #137333; color: white; }
   .pill.pending { background: #888; color: white; }
+  .pill.missed { background: #c5221f; color: white; }
 </style>
 </head>
 <body>
@@ -73,7 +74,7 @@
   </div>
 </form>
 
-<h2 style="margin-top:2rem; font-size:1.1rem;">Upcoming Vandenberg launches</h2>
+<h2 style="margin-top:2rem; font-size:1.1rem;">Vandenberg launches</h2>
 {% if launches %}
 <table>
   <thead><tr><th>Mission</th><th>T-0</th><th>Status</th><th></th></tr></thead>
@@ -85,6 +86,7 @@
       <td>{{ l.status or "—" }}</td>
       <td>
         {% if l.notified %}<span class="pill sent">notified</span>
+        {% elif l.net_utc < now_utc %}<span class="pill missed">missed</span>
         {% else %}<span class="pill pending">pending</span>{% endif %}
       </td>
     </tr>
@@ -92,7 +94,7 @@
   </tbody>
 </table>
 {% else %}
-  <p style="color:#888;">No upcoming launches known yet. Hit "Poll now" to fetch.</p>
+  <p style="color:#888;">No launches known yet. Hit "Poll now" to fetch.</p>
 {% endif %}
 
 <script>

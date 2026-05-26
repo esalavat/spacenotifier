@@ -93,15 +93,28 @@ def get_pending_launches() -> list[sqlite3.Row]:
         )
 
 
-def list_upcoming_launches(limit: int = 5) -> list[sqlite3.Row]:
-    """Launches whose T-0 is still in the future."""
+def is_notified(launch_id: str) -> bool:
+    with connect() as conn:
+        row = conn.execute(
+            "SELECT notified FROM launches WHERE id = ?", (launch_id,)
+        ).fetchone()
+        return bool(row and row["notified"])
+
+
+def list_launches() -> list[sqlite3.Row]:
+    """All known launches: upcoming first (nearest T-0 first), then past (most recent first)."""
     now = datetime.now(timezone.utc).isoformat()
     with connect() as conn:
         return list(
             conn.execute(
-                "SELECT id, name, net_utc, status, notified FROM launches "
-                "WHERE net_utc >= ? ORDER BY net_utc ASC LIMIT ?",
-                (now, limit),
+                """
+                SELECT id, name, net_utc, status, notified FROM launches
+                ORDER BY
+                  CASE WHEN net_utc >= ? THEN 0 ELSE 1 END,
+                  CASE WHEN net_utc >= ? THEN net_utc END ASC,
+                  net_utc DESC
+                """,
+                (now, now),
             )
         )
 

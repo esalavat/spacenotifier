@@ -79,12 +79,18 @@ def _schedule_one(scheduler: BaseScheduler, launch_id: str, name: str, net_utc: 
         log.warning("could not parse net %r for launch %s", net_utc, launch_id)
         return False
 
+    now = datetime.now(timezone.utc)
     fire_at = net_dt - timedelta(minutes=lead)
-    if fire_at <= datetime.now(timezone.utc):
-        # T-lead already passed; don't schedule. If the launch is still upcoming
-        # within the lead window we silently skip — better than spamming late.
+    if fire_at <= now:
         if scheduler.get_job(job_id):
             scheduler.remove_job(job_id)
+        # Catch-up: T-lead has passed but T-0 hasn't, and we haven't notified yet.
+        # Covers the case where LL2 publishes a tight NET inside the lead window
+        # or flickers to a NET that nukes the existing schedule.
+        if now < net_dt and not db.is_notified(launch_id):
+            log.info("catch-up notify %s (T-%dmin was %s, net %s)",
+                     launch_id, lead, fire_at.isoformat(), net_utc)
+            notifier.notify_launch(launch_id, name, net_utc)
         return False
 
     scheduler.add_job(
