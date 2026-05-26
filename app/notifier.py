@@ -56,7 +56,7 @@ def notify_launch(launch_id: str, name: str, net_utc: str) -> None:
     try:
         _post(
             topic,
-            title=f"SpaceX Vandenberg — T-{lead} min",
+            title=f"SpaceX Vandenberg T-{lead} min",
             body=f"{name} lifts off at {local} ({utc})",
         )
         db.mark_notified(launch_id)
