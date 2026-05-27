@@ -17,6 +17,12 @@ LL2_PARAMS = {
 
 JOB_PREFIX = "launch:"
 
+# LL2's net_precision says how precise the published NET timestamp is.
+# Anything coarser than an hour (Day, Month, "Quarter 2", etc.) means the time
+# is a placeholder — scheduling off it would fire T-15 notifications against a
+# made-up midnight UTC.
+PRECISE_NET_PRECISIONS = {"Hour", "Minute", "Second"}
+
 
 def _is_vandenberg(pad_location_name: str | None) -> bool:
     return bool(pad_location_name) and "vandenberg" in pad_location_name.lower()
@@ -62,16 +68,31 @@ def poll_and_schedule(scheduler: BaseScheduler) -> int:
         name = launch.get("name") or "Unknown mission"
         net = launch.get("net")
         status = (launch.get("status") or {}).get("name")
+        net_precision = (launch.get("net_precision") or {}).get("name")
         if not net:
             continue
         db.upsert_launch(launch_id, name, net, status)
-        if _schedule_one(scheduler, launch_id, name, net):
+        if _schedule_one(scheduler, launch_id, name, net, net_precision):
             scheduled += 1
     return scheduled
 
 
-def _schedule_one(scheduler: BaseScheduler, launch_id: str, name: str, net_utc: str) -> bool:
+def _schedule_one(
+    scheduler: BaseScheduler,
+    launch_id: str,
+    name: str,
+    net_utc: str,
+    net_precision: str | None = None,
+) -> bool:
     job_id = f"{JOB_PREFIX}{launch_id}"
+
+    if net_precision not in PRECISE_NET_PRECISIONS:
+        if scheduler.get_job(job_id):
+            scheduler.remove_job(job_id)
+            log.info("dropped schedule for %s (NET precision %r is too loose)",
+                     launch_id, net_precision)
+        return False
+
     lead = config.lead_minutes()
     try:
         net_dt = datetime.fromisoformat(net_utc.replace("Z", "+00:00"))
